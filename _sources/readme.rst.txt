@@ -2,7 +2,7 @@
 raptor-stats
 ============
 
-Raptor (Raster-Vector) Zonal Statistics
+`Raptor (Raster-Vector) Zonal Statistics <https://simonpedrogonzalez.github.io/raptor-stats-docs/index.html>`_
 
 This package provides a simple interface to calculate zonal statistics using Raptor Methods with a ``rasterstats``\ -like api.
 
@@ -23,9 +23,9 @@ Usage
    from raptorstats import zonal_stats
 
    # Example usage
-   stats = zonal_stats("path/to/raster.tif", "path/to/vector.shp", method="scanline")
+   stats = zonal_stats("path/to/vector.shp", "path/to/raster.tif", method="scanline")
 
-Note: see the `API documentation <https://raptor-stats.readthedocs.io/en/latest/>`_ for more details.
+Note: see the `zonal_stats API docs <https://simonpedrogonzalez.github.io/raptor-stats-docs/raptorstats.api.html#raptorstats.api.zonal_stats>`_ for more details on input types and additional parameters.
 
 Methods
 -------
