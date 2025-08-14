@@ -99,14 +99,19 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Zonal statistics using the AggQuadTree or Scanline methods.</span>
 
-<span class="sd">    The method supports quite a few parameters </span>
+<span class="sd">    The method supports quite a few input types for both vectors and rasters, with options</span>
+<span class="sd">    to select band, layers, specify affine, etc. However, the loading method will make</span>
+<span class="sd">    assumptions for some of them, so if your input is exotic (or you see errors),</span>
+<span class="sd">    ideally you might want to transform it yourself to a north-up, one-band, no-shearing</span>
+<span class="sd">    rasterio DatasetReader and a geopandas closed-polygon-only GeoDataFrame with the</span>
+<span class="sd">    same CRS as the raster.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    vectors :  str | Path | geopandas.GeoDataFrame |</span>
 <span class="sd">                shapely.geometry.base.BaseGeometry | Sequence[BaseGeometry] |</span>
 <span class="sd">                dict (GeoJSON-like mapping),</span>
-<span class="sd">                anything GeoPandas can read</span>
+<span class="sd">                anything GeoPandas can read.</span>
 <span class="sd">    raster  :  str | Path | rasterio.io.DatasetReader | np.ndarray | anything rasterio can read</span>
 <span class="sd">    stats   :  list[str]            statistics to compute (min, max, mean, etc.)</span>
 <span class="sd">    layer   :  int | str            layer name/number for multi-layer vector sources</span>

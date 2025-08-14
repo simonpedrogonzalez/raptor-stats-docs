@@ -95,13 +95,18 @@
 <dt class="sig sig-object py" id="raptorstats.api.zonal_stats">
 <span class="sig-prename descclassname"><span class="pre">raptorstats.api.</span></span><span class="sig-name descname"><span class="pre">zonal_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scanline'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/raptorstats/api.html#zonal_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raptorstats.api.zonal_stats" title="Link to this definition"></a></dt>
 <dd><p>Zonal statistics using the AggQuadTree or Scanline methods.</p>
-<p>The method supports quite a few parameters</p>
+<p>The method supports quite a few input types for both vectors and rasters, with options
+to select band, layers, specify affine, etc. However, the loading method will make
+assumptions for some of them, so if your input is exotic (or you see errors),
+ideally you might want to transform it yourself to a north-up, one-band, no-shearing
+rasterio DatasetReader and a geopandas closed-polygon-only GeoDataFrame with the
+same CRS as the raster.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vectors</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>geopandas.GeoDataFrame</em><em> |</em>) – shapely.geometry.base.BaseGeometry | Sequence[BaseGeometry] |
 dict (GeoJSON-like mapping),
-anything GeoPandas can read</p></li>
+anything GeoPandas can read.</p></li>
 <li><p><strong>raster</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>rasterio.io.DatasetReader</em><em> | </em><em>np.ndarray</em><em> | </em><em>anything rasterio can read</em>)</p></li>
 <li><p><strong>stats</strong> (<em>list</em><em>[</em><em>str</em><em>]            </em><em>statistics to compute</em><em> (</em><em>min</em><em>, </em><em>max</em><em>, </em><em>mean</em><em>, </em><em>etc.</em><em>)</em>)</p></li>
 <li><p><strong>layer</strong> (<em>int</em><em> | </em><em>str            layer name/number for multi-layer vector sources</em>)</p></li>
