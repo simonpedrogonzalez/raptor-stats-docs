@@ -99,15 +99,20 @@
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Zonal statistics using the AggQuadTree or Scanline methods.</span>
 
+<span class="sd">    The method supports quite a few parameters </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    vectors :  str | GeoDataFrame | anything GeoPandas can read</span>
-<span class="sd">    raster  :  str | path-like | rasterio.DatasetReader</span>
+<span class="sd">    vectors :  str | Path | geopandas.GeoDataFrame |</span>
+<span class="sd">                shapely.geometry.base.BaseGeometry | Sequence[BaseGeometry] |</span>
+<span class="sd">                dict (GeoJSON-like mapping),</span>
+<span class="sd">                anything GeoPandas can read</span>
+<span class="sd">    raster  :  str | Path | rasterio.io.DatasetReader | np.ndarray | anything rasterio can read</span>
 <span class="sd">    stats   :  list[str]            statistics to compute (min, max, mean, etc.)</span>
 <span class="sd">    layer   :  int | str            layer name/number for multi-layer vector sources</span>
 <span class="sd">    band    :  int                  raster band (1-based)</span>
 <span class="sd">    nodata  :  float | None         overrides raster NODATA value</span>
-<span class="sd">    affine  :  affine.Affine | None required if `raster` is a NumPy array (not used here)</span>
+<span class="sd">    affine  :  affine.Affine | None required if `raster` is a NumPy array</span>
 <span class="sd">    prefix  :  str | None           prefix every stat key (useful for merges)</span>
 <span class="sd">    categorical : bool              whether to compute categorical stats (histogram)</span>
 <span class="sd">    method  :  str                  zonal statistics method to use (&#39;agqt&#39; or &#39;scanline&#39;)</span>
