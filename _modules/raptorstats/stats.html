@@ -1,0 +1,473 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>raptorstats.stats &mdash; raptorstats  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            raptorstats
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">raptor-stats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../raptorstats.html">raptorstats package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">raptorstats</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">raptorstats.stats</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for raptorstats.stats</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">DEFAULT_STATS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+
+<span class="n">VALID_STATS</span> <span class="o">=</span> <span class="n">DEFAULT_STATS</span> <span class="o">+</span> <span class="p">[</span>
+    <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;std&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;majority&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;minority&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;unique&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;range&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nodata&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nan&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="Stats">
+<a class="viewcode-back" href="../../raptorstats.stats.html#raptorstats.stats.Stats">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Stats</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for statistics computation.</span>
+
+<span class="sd">    Stores the statistics to be computed and has methods for</span>
+<span class="sd">    computing them from arrays or partial results.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">categorical</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">categorical</span> <span class="k">else</span> <span class="n">DEFAULT_STATS</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">stats</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;ALL&quot;</span><span class="p">]:</span>
+                <span class="n">stats</span> <span class="o">=</span> <span class="n">VALID_STATS</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="n">percentiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;percentile_&quot;</span><span class="p">):</span>
+                <span class="n">percentiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_percentile</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_STATS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Stat `</span><span class="si">%s</span><span class="s2">` not valid; &quot;</span>
+                    <span class="s2">&quot;must be one of </span><span class="se">\n</span><span class="s2"> </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">VALID_STATS</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="n">requested</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+        <span class="n">required</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+        <span class="n">required</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;count&quot;</span><span class="p">})</span>  <span class="c1"># count is always useful</span>
+
+        <span class="k">if</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">}</span> <span class="o">&amp;</span> <span class="n">required</span> <span class="ow">or</span> <span class="n">percentiles</span><span class="p">:</span>
+            <span class="n">required</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">})</span>
+        <span class="k">if</span> <span class="s2">&quot;std&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">:</span>
+            <span class="n">required</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;mean&quot;</span><span class="p">})</span>
+        <span class="k">if</span> <span class="s2">&quot;range&quot;</span> <span class="ow">in</span> <span class="n">required</span><span class="p">:</span>
+            <span class="n">required</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">})</span>
+
+        <span class="n">run_count</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">categorical</span>
+            <span class="ow">or</span> <span class="n">percentiles</span>
+            <span class="ow">or</span> <span class="n">required</span> <span class="o">&amp;</span> <span class="p">{</span><span class="s2">&quot;majority&quot;</span><span class="p">,</span> <span class="s2">&quot;minority&quot;</span><span class="p">,</span> <span class="s2">&quot;unique&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">ordered</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">stats</span> <span class="o">+</span> <span class="n">VALID_STATS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">required</span> <span class="ow">and</span> <span class="n">tok</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ordered</span><span class="p">:</span>
+                <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+                <span class="n">required</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">required</span><span class="p">:</span>
+            <span class="n">ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">requested</span> <span class="o">=</span> <span class="n">requested</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">ordered</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical</span> <span class="o">=</span> <span class="n">categorical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_count</span> <span class="o">=</span> <span class="n">run_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">percentiles</span> <span class="o">=</span> <span class="n">percentiles</span>
+
+<div class="viewcode-block" id="Stats.clean_results">
+<a class="viewcode-back" href="../../raptorstats.stats.html#raptorstats.stats.Stats.clean_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clean_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;histogram&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">requested</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">res</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_percentile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stat</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stat</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;percentile_&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must start with &#39;percentile_&#39;&quot;</span><span class="p">)</span>
+        <span class="n">qstr</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;percentile_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">qstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="mf">100.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;percentiles must be &lt;= 100&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">q</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;percentiles must be &gt;= 0&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;StatsConfig(stats=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="si">}</span><span class="s2">, categorical=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">categorical</span><span class="si">}</span><span class="s2">, run_count=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run_count</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+<div class="viewcode-block" id="Stats.empty">
+<a class="viewcode-back" href="../../raptorstats.stats.html#raptorstats.stats.Stats.empty">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an empty stats dict with the requested keys.&quot;&quot;&quot;</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">}</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">st</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">&quot;nodata&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;nodata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="s2">&quot;nan&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">st</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">st</span></div>
+
+    
+
+<div class="viewcode-block" id="Stats.from_array">
+<a class="viewcode-back" href="../../raptorstats.stats.html#raptorstats.stats.Stats.from_array">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the configured statistics on *data*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : np.ndarray or np.ma.MaskedArray</span>
+<span class="sd">            Pixel values for one feature.  Masked or NaN values are treated</span>
+<span class="sd">            as nodata.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Keys are the statistic names requested at construction time</span>
+<span class="sd">            (plus every {value: count} entry if categorical=True).</span>
+<span class="sd">            Values are floats or ints; empty inputs yield None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># ---------- normalise to plain ndarray + boolean mask -----------</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">isMaskedArray</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">mask</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+        <span class="n">nan_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="n">nodata_mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">|</span> <span class="n">nan_mask</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="o">~</span><span class="n">nodata_mask</span><span class="p">]</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;nodata&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;nodata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="k">if</span> <span class="s2">&quot;nan&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nan_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">valid</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">if</span> <span class="s2">&quot;count&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n</span><span class="p">:</span>
+            <span class="c1"># Basic stats</span>
+            <span class="k">if</span> <span class="s2">&quot;sum&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;sum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="k">if</span> <span class="s2">&quot;min&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="k">if</span> <span class="s2">&quot;max&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="k">if</span> <span class="s2">&quot;mean&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+            <span class="k">if</span> <span class="s2">&quot;range&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">valid</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+            <span class="c1"># if np.allclose(out[&quot;mean&quot;], 229.543):</span>
+            <span class="c1">#     print(&quot;stop&quot;)</span>
+            <span class="k">if</span> <span class="s2">&quot;std&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="s2">&quot;median&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;median&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">valid</span><span class="p">))</span>
+
+            <span class="c1"># Percentiles</span>
+            <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">percentiles</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;percentile_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">tok</span><span class="p">))]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">tok</span><span class="p">))</span>
+
+            <span class="c1"># Histogram / Categorical stats</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_count</span><span class="p">:</span>
+                <span class="n">vals</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">counter</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">counts</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+
+                <span class="k">if</span> <span class="s2">&quot;unique&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;unique&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">counter</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="s2">&quot;majority&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="ow">and</span> <span class="n">counter</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;majority&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+                <span class="k">if</span> <span class="s2">&quot;minority&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="ow">and</span> <span class="n">counter</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;minority&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counter</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_count</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------ #</span>
+
+<div class="viewcode-block" id="Stats.from_partials">
+<a class="viewcode-back" href="../../raptorstats.stats.html#raptorstats.stats.Stats.from_partials">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_partials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partials</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine already-computed chunk statistics into one feature-level dict.</span>
+
+<span class="sd">        Each element of *partials* must have been produced by `from_array()`</span>
+<span class="sd">        with **the same Stats configuration**.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Feature-level statistics – exactly the same schema you get from</span>
+<span class="sd">            calling `from_array()` on the full dataset at once.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># discard empty / None chunks</span>
+        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">partials</span> <span class="k">if</span> <span class="n">p</span><span class="p">]</span>
+
+        <span class="c1"># nothing at all</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chunks</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="n">stat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">}</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># helpers to accumulate</span>
+        <span class="n">total_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">total_mean</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">total_M2</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">total_nodata</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_nan</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">global_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">global_max</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">histogram</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+            <span class="c1"># counts</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="p">:</span>
+                <span class="n">total_nodata</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nodata&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+                <span class="n">total_nan</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+                <span class="k">continue</span>
+
+            <span class="n">total_nodata</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nodata&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+            <span class="n">total_nan</span> <span class="o">+=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+
+            <span class="c1"># sum / mean</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">m</span><span class="p">)):</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="mf">0.0</span>  <span class="c1"># fallback if mean missing</span>
+
+            <span class="c1"># std -&gt; M2</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">std</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">std</span><span class="p">)):</span>
+                <span class="n">M2</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># allow true zero std to pass through</span>
+                <span class="n">M2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">std</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span>
+
+            <span class="c1"># combine (Welford pairwise)</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="n">total_mean</span>
+            <span class="n">new_count</span> <span class="o">=</span> <span class="n">total_count</span> <span class="o">+</span> <span class="n">n</span>
+            <span class="n">total_M2</span> <span class="o">+=</span> <span class="n">M2</span> <span class="o">+</span> <span class="p">(</span><span class="n">delta</span> <span class="o">*</span> <span class="n">delta</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">total_count</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="n">new_count</span>
+            <span class="n">total_mean</span> <span class="o">+=</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">n</span> <span class="o">/</span> <span class="n">new_count</span>
+            <span class="n">total_count</span> <span class="o">=</span> <span class="n">new_count</span>
+            <span class="n">total_sum</span> <span class="o">+=</span> <span class="n">s</span>
+
+            <span class="c1"># min/max</span>
+            <span class="n">vmin</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">vmin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vmin</span><span class="p">):</span>
+                <span class="n">global_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">global_min</span><span class="p">,</span> <span class="n">vmin</span><span class="p">)</span>
+            <span class="n">vmax</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">vmax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vmax</span><span class="p">):</span>
+                <span class="n">global_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">global_max</span><span class="p">,</span> <span class="n">vmax</span><span class="p">)</span>
+
+            <span class="c1"># histogram</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;histogram&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">h</span><span class="p">:</span>
+                <span class="n">histogram</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="n">stat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="s2">&quot;nodata&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;nodata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_nodata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;nan&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_nan</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;count&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">total_count</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">total_count</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;sum&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;sum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_sum</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;min&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">global_min</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;max&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">global_max</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;mean&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_sum</span> <span class="o">/</span> <span class="n">total_count</span><span class="p">)</span>
+            <span class="c1"># if np.allclose(out[&quot;mean&quot;], 229.543):</span>
+            <span class="c1">#     print(&quot;stop&quot;)</span>
+            <span class="k">if</span> <span class="s2">&quot;range&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">global_max</span> <span class="o">-</span> <span class="n">global_min</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s2">&quot;std&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">total_M2</span> <span class="o">/</span> <span class="n">total_count</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="s2">&quot;median&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">percentiles</span><span class="p">:</span>
+                <span class="c1"># build cumulative distribution</span>
+                <span class="n">vals</span><span class="p">,</span> <span class="n">cnts</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">histogram</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+                <span class="c1"># cum = np.cumsum(cnts)</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">_quantile</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">cnts</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+                    <span class="n">cnts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cnts</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+                    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                    <span class="n">vals</span><span class="p">,</span> <span class="n">cnts</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">cnts</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+                    <span class="n">cum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">cnts</span><span class="p">)</span>
+                    <span class="n">N</span> <span class="o">=</span> <span class="n">cum</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                    <span class="c1"># NumPy-like &quot;linear&quot; between order stats</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">q</span>
+                    <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                    <span class="n">g</span> <span class="o">=</span> <span class="n">k</span> <span class="o">-</span> <span class="n">j</span>
+
+                    <span class="k">def</span><span class="w"> </span><span class="nf">kth</span><span class="p">(</span><span class="n">k0</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="n">vals</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">cum</span><span class="p">,</span> <span class="n">k0</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)]</span>
+
+                    <span class="n">vj</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">kth</span><span class="p">)(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="n">vj1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">kth</span><span class="p">)(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">g</span><span class="p">)</span> <span class="o">*</span> <span class="n">vj</span> <span class="o">+</span> <span class="n">g</span> <span class="o">*</span> <span class="n">vj1</span>
+
+                <span class="k">if</span> <span class="s2">&quot;median&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;median&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_quantile</span><span class="p">(</span><span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span> <span class="n">cnts</span><span class="o">=</span><span class="n">cnts</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">percentiles</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;percentile_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_quantile</span><span class="p">(</span><span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span> <span class="n">cnts</span><span class="o">=</span><span class="n">cnts</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q</span> <span class="o">/</span> <span class="mf">100.0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_count</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;unique&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;unique&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">histogram</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;majority&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;majority&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">histogram</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">histogram</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+                <span class="k">if</span> <span class="s2">&quot;minority&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;minority&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">histogram</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">histogram</span><span class="o">.</span><span class="n">get</span><span class="p">))</span>
+                <span class="n">out</span><span class="p">[</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">histogram</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_count</span><span class="p">:</span>
+            <span class="c1"># empty input, but categorical requested</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;histogram&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">histogram</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

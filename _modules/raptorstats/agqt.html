@@ -1,0 +1,684 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>raptorstats.agqt &mdash; raptorstats  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            raptorstats
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">raptor-stats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../raptorstats.html">raptorstats package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">raptorstats</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">raptorstats.agqt</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for raptorstats.agqt</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">geopandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gpd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">rasterio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.node</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.scanline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Scanline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rtree</span><span class="w"> </span><span class="kn">import</span> <span class="n">index</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">box</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.zonal_stat_method</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZonalStatMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.scanline</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_intersection_table</span><span class="p">,</span> <span class="n">build_reading_table</span><span class="p">,</span> <span class="n">process_reading_table</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<div class="viewcode-block" id="AggQuadTree">
+<a class="viewcode-back" href="../../raptorstats.agqt.html#raptorstats.agqt.AggQuadTree">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AggQuadTree</span><span class="p">(</span><span class="n">ZonalStatMethod</span><span class="p">):</span>
+
+    <span class="vm">__name__</span> <span class="o">=</span> <span class="s2">&quot;AggQuadTree&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">index_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">build_index</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="n">max_depth</span>
+        <span class="k">if</span> <span class="n">index_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">index_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;index_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">_depth_</span><span class="si">{</span><span class="n">max_depth</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># strip .{shit} if exists</span>
+            <span class="n">index_path</span> <span class="o">=</span> <span class="n">index_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_path</span> <span class="o">=</span> <span class="n">index_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_index</span> <span class="o">=</span> <span class="n">build_index</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_index_files_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">idx_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="si">}</span><span class="s2">.idx&quot;</span>
+        <span class="n">dat_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">idx_file</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dat_file</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_should_build_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_index</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_files_exist</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;max_depth&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="p">,</span> <span class="s2">&quot;index_path&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="p">}</span>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_scanline_reading_table</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span>
+    <span class="p">):</span>
+
+        <span class="n">f_index</span><span class="p">,</span> <span class="n">intersection_coords</span> <span class="o">=</span> <span class="n">build_intersection_table</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">intersection_coords</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">reading_table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">f_index_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">unique_f_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reading_table</span> <span class="o">=</span> <span class="n">reading_table</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">f_index_starts</span> <span class="o">=</span> <span class="n">f_index_starts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unique_f_indices</span> <span class="o">=</span> <span class="n">unique_f_indices</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">effective_n_features</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">return</span>
+
+        <span class="n">reading_table</span> <span class="o">=</span> <span class="n">build_reading_table</span><span class="p">(</span>
+            <span class="n">f_index</span><span class="p">,</span> <span class="n">intersection_coords</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="n">return_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_by_feature</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reading_table</span> <span class="o">=</span> <span class="n">reading_table</span> <span class="c1"># row, col0, col1, f_index</span>
+        <span class="n">unique_f_indices</span><span class="p">,</span> <span class="n">f_index_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">reading_table</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_index_starts</span> <span class="o">=</span> <span class="n">f_index_starts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unique_f_indices</span> <span class="o">=</span> <span class="n">unique_f_indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">effective_n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_index_starts</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_quad_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">):</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">part1by1</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">n</span> <span class="o">&amp;=</span> <span class="mh">0x0000FFFF</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">|</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">))</span> <span class="o">&amp;</span> <span class="mh">0x00FF00FF</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">|</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">))</span> <span class="o">&amp;</span> <span class="mh">0x0F0F0F0F</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">|</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">))</span> <span class="o">&amp;</span> <span class="mh">0x33333333</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">|</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&amp;</span> <span class="mh">0x55555555</span>
+            <span class="k">return</span> <span class="n">n</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">z_order_indices</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">part1by1</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">part1by1</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_boxes_aligned_even</span><span class="p">(</span><span class="n">divisions</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Build a divisions x divisions grid of pixel-aligned tiles with remainder</span>
+<span class="sd">            distributed as evenly as possible.</span>
+
+<span class="sd">            Returns (boxes, ix, iy) with boxes as (left, bottom, right, top) in CRS</span>
+<span class="sd">            coords.</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">rasterio.windows</span><span class="w"> </span><span class="kn">import</span> <span class="n">Window</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">rasterio.windows</span><span class="w"> </span><span class="kn">import</span> <span class="n">bounds</span> <span class="k">as</span> <span class="n">win_bounds</span>
+
+            <span class="k">if</span> <span class="n">divisions</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;divisions must be &gt; 0&quot;</span><span class="p">)</span>
+
+            <span class="n">W</span><span class="p">,</span> <span class="n">H</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">raster</span><span class="o">.</span><span class="n">height</span>
+
+            <span class="c1"># Integer edges: floor(i*W/D), floor(j*H/D)</span>
+            <span class="n">col_edges</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">divisions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">W</span><span class="p">)</span> <span class="o">//</span> <span class="n">divisions</span>
+            <span class="n">row_edges</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">divisions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">H</span><span class="p">)</span> <span class="o">//</span> <span class="n">divisions</span>
+
+            <span class="n">col_offs</span> <span class="o">=</span> <span class="n">col_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">row_offs</span> <span class="o">=</span> <span class="n">row_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">widths</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">col_edges</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">heights</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">row_edges</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+            <span class="n">boxes</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">iy_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">divisions</span><span class="p">):</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">heights</span><span class="p">[</span><span class="n">iy_</span><span class="p">]</span>
+                <span class="n">r0</span> <span class="o">=</span> <span class="n">row_offs</span><span class="p">[</span><span class="n">iy_</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">ix_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">divisions</span><span class="p">):</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="n">widths</span><span class="p">[</span><span class="n">ix_</span><span class="p">]</span>
+                    <span class="n">c0</span> <span class="o">=</span> <span class="n">col_offs</span><span class="p">[</span><span class="n">ix_</span><span class="p">]</span>
+                    <span class="n">win</span> <span class="o">=</span> <span class="n">Window</span><span class="p">(</span><span class="n">c0</span><span class="p">,</span> <span class="n">r0</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+                    <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">win_bounds</span><span class="p">(</span><span class="n">win</span><span class="p">,</span> <span class="n">raster</span><span class="o">.</span><span class="n">transform</span><span class="p">))</span>
+                    <span class="n">ix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ix_</span><span class="p">)</span>
+                    <span class="n">iy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">iy_</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ix</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">iy</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">coarsen_from_children</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">divisions</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Given current level (divisions×divisions) tiles, build parent level</span>
+<span class="sd">            ((div/2)×(div/2)) by grouping children with parent indices (ix//2, iy//2)</span>
+<span class="sd">            and unioning bounds.&quot;&quot;&quot;</span>
+            <span class="n">parent_div</span> <span class="o">=</span> <span class="n">divisions</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">pix</span> <span class="o">=</span> <span class="n">ix</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">piy</span> <span class="o">=</span> <span class="n">iy</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="c1"># Composite key to group by parent cell</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">piy</span> <span class="o">*</span> <span class="n">parent_div</span> <span class="o">+</span> <span class="n">pix</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+            <span class="n">boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+            <span class="n">pix</span> <span class="o">=</span> <span class="n">pix</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+            <span class="n">piy</span> <span class="o">=</span> <span class="n">piy</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+
+            <span class="n">uniq</span><span class="p">,</span> <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">out_boxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">boxes</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">out_ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">out_iy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">)):</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">starts</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">starts</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">k</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq</span><span class="p">)</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+                <span class="n">g</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">s</span><span class="p">:</span><span class="n">e</span><span class="p">]</span>
+                <span class="c1"># union bounds</span>
+                <span class="n">out_boxes</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">g</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># left</span>
+                <span class="n">out_boxes</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">g</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># bottom</span>
+                <span class="n">out_boxes</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">g</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># right</span>
+                <span class="n">out_boxes</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">g</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># top</span>
+                <span class="n">out_ix</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">pix</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                <span class="n">out_iy</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">piy</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">out_boxes</span><span class="p">,</span> <span class="n">out_ix</span><span class="p">,</span> <span class="n">out_iy</span>
+
+        <span class="n">n_pixels_width</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">width</span>
+        <span class="n">n_pixels_height</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">height</span>
+        <span class="n">min_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_pixels_width</span><span class="p">,</span> <span class="n">n_pixels_height</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">min_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Max depth </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="si">}</span><span class="s2"> is too high for raster size </span><span class="si">{</span><span class="n">n_pixels_width</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">n_pixels_height</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Reduce max_depth.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">box_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="p">)</span>
+        <span class="n">all_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Build leaf level</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span>
+        <span class="n">divisions</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">level</span>
+        <span class="n">boxes</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span> <span class="o">=</span> <span class="n">get_boxes_aligned_even</span><span class="p">(</span><span class="n">divisions</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+
+        <span class="n">previous_aggregates</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">previous_parent_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Iterate from leaves up to root, coarsening</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">divisions</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">level</span>
+
+            <span class="n">z_indices</span> <span class="o">=</span> <span class="n">z_order_indices</span><span class="p">(</span><span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">)</span>
+            <span class="n">sort_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">z_indices</span><span class="p">)</span>
+            <span class="n">boxes_lvl</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">]</span>
+            <span class="n">ix_lvl</span>    <span class="o">=</span> <span class="n">ix</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">]</span>
+            <span class="n">iy_lvl</span>    <span class="o">=</span> <span class="n">iy</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">]</span>
+            <span class="n">z_lvl</span>     <span class="o">=</span> <span class="n">z_indices</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">]</span>
+
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">z_lvl</span> <span class="o">+</span> <span class="n">box_index</span>
+            <span class="n">shp_boxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">box</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span> <span class="ow">in</span> <span class="n">boxes_lvl</span><span class="p">]</span>
+            <span class="n">n_boxes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes_lvl</span><span class="p">)</span>
+            <span class="n">box_index</span> <span class="o">+=</span> <span class="n">n_boxes</span>  <span class="c1"># advance global id space to parent level</span>
+
+            <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parent_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parent_ids</span> <span class="o">=</span> <span class="p">(</span><span class="n">z_lvl</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="n">box_index</span>  <span class="c1"># parent ids live in the next chunk</span>
+
+            <span class="k">if</span> <span class="n">level</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="p">:</span>
+                <span class="c1"># Compute aggregates only once (on leaves)</span>
+                <span class="n">vector_layer</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">geometry</span><span class="o">=</span><span class="n">shp_boxes</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">feature</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+                <span class="n">sc</span> <span class="o">=</span> <span class="n">Scanline</span><span class="p">()</span>
+                <span class="n">aggregates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sc</span><span class="p">(</span><span class="n">raster</span><span class="p">,</span> <span class="n">vector_layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Combine child aggregates into parents using parent_ids computed at previous (finer) level</span>
+                <span class="n">aggregates</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">p_id</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">previous_parent_ids</span><span class="p">):</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">previous_parent_ids</span> <span class="o">==</span> <span class="n">p_id</span>
+                    <span class="n">child_aggregates</span> <span class="o">=</span> <span class="n">previous_aggregates</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+                    <span class="n">aggregates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">from_partials</span><span class="p">(</span><span class="n">child_aggregates</span><span class="p">))</span>
+                <span class="n">aggregates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aggregates</span><span class="p">)</span>
+
+            <span class="n">previous_aggregates</span> <span class="o">=</span> <span class="n">aggregates</span>
+            <span class="n">previous_parent_ids</span> <span class="o">=</span> <span class="n">parent_ids</span>
+
+            <span class="c1"># Emit nodes for this level</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_boxes</span><span class="p">):</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span> <span class="c1"># Node computes pixel_bounds from box and transform</span>
+                    <span class="n">_id</span><span class="o">=</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">parent_id</span><span class="o">=</span><span class="n">parent_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
+                    <span class="n">max_depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span><span class="p">,</span>
+                    <span class="n">_box</span><span class="o">=</span><span class="n">shp_boxes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">transform</span><span class="o">=</span><span class="n">raster</span><span class="o">.</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">stats</span><span class="o">=</span><span class="n">aggregates</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">idx</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">boxes_lvl</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">obj</span><span class="o">=</span><span class="n">node</span><span class="p">)</span>
+                <span class="n">all_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+            <span class="c1"># Prepare parent level boxes by unioning children bounds</span>
+            <span class="k">if</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">boxes</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span> <span class="o">=</span> <span class="n">coarsen_from_children</span><span class="p">(</span><span class="n">boxes_lvl</span><span class="p">,</span> <span class="n">ix_lvl</span><span class="p">,</span> <span class="n">iy_lvl</span><span class="p">,</span> <span class="n">divisions</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_quad_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error loading index: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_delete_index_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">idx_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="si">}</span><span class="s2">.idx&quot;</span>
+        <span class="n">dat_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">idx_file</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">idx_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dat_file</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dat_file</span><span class="p">)</span>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_precomputations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_should_build_indices</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_files_exist</span><span class="p">():</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Index files </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="si">}</span><span class="s2">.idx and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="si">}</span><span class="s2">.dat already exist. They will be overwritten.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_delete_index_files</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compute_quad_tree</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_quad_tree</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_scanline_reading_table</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_precomputations</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+
+        <span class="n">reading_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reading_table</span>
+        <span class="n">f_index_starts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_index_starts</span>
+        <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_features</span>
+        <span class="n">n_eff_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">effective_n_features</span>
+
+        <span class="k">if</span> <span class="n">reading_table</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># No intersections found, return empty stats</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">)]</span>
+        
+        <span class="n">new_reading_table</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">partials</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span><span class="p">)]</span>
+
+        <span class="c1"># Debugging</span>
+        <span class="c1"># H, W = raster.height, raster.width</span>
+        <span class="c1"># window = rio.windows.Window(0, 0, W, H).round_offsets().round_lengths()  # for plotting/ref</span>
+        <span class="c1"># global_mask = np.zeros((H, W), dtype=int)  # global mask for debugging</span>
+        <span class="c1"># used_nodes = [[] for _ in range(n_features)]</span>
+        <span class="c1"># End Debugging</span>
+
+        <span class="k">for</span> <span class="n">f_index</span><span class="p">,</span> <span class="n">geom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">geometry</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">f_index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unique_f_indices</span><span class="p">:</span>
+                <span class="c1"># Skip features that do not have any intersections</span>
+                <span class="c1"># self.unique_f_indices was computed from the scanline reading table</span>
+                <span class="c1"># so if this f_index does not appear, it means there are n intersections</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Get all intersecting nodes, sorted from root to leaves</span>
+            <span class="c1"># window for geom</span>
+            <span class="n">window_bounds</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">bounds</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">window_bounds</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="kc">True</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">object</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">]</span> <span class="c1"># TODO: one liner</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_contained_in_geom</span><span class="p">(</span><span class="n">geom</span><span class="p">)]</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+            <span class="n">without_children</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">nids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">parent_id</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nids</span><span class="p">:</span>
+                    <span class="n">without_children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+            <span class="n">nodes</span> <span class="o">=</span> <span class="n">without_children</span>
+
+            <span class="n">f_index_start</span> <span class="o">=</span> <span class="n">f_index_starts</span><span class="p">[</span><span class="n">f_index</span><span class="p">]</span>
+            <span class="n">f_index_end</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">f_index_starts</span><span class="p">[</span><span class="n">f_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">f_index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">n_eff_features</span>
+                <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">reading_table</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">f_reading_table</span> <span class="o">=</span> <span class="n">reading_table</span><span class="p">[</span><span class="n">f_index_start</span><span class="p">:</span><span class="n">f_index_end</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">new_reading_table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_reading_table</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Debugging</span>
+            <span class="c1"># put node 1 in position 0</span>
+            <span class="c1"># n1 = nodes[0]</span>
+            <span class="c1"># n0 = nodes[0]</span>
+            <span class="c1"># nodes[0] = nodes[1]</span>
+            <span class="c1"># nodes[1] = n0</span>
+            <span class="c1"># End Debugging</span>
+
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+
+                <span class="n">n_r0</span><span class="p">,</span> <span class="n">n_r1</span><span class="p">,</span> <span class="n">n_c0</span><span class="p">,</span> <span class="n">n_c1</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">pixel_bounds</span>
+
+                <span class="c1"># Debugging</span>
+                <span class="c1"># Mark in global mask</span>
+
+                <span class="c1"># sq_win = rio.windows.from_bounds(</span>
+                <span class="c1">#     n_x0, n_y0, n_x1, n_y1, transform=transform</span>
+                <span class="c1"># )</span>
+                <span class="c1"># sq_win = sq_win.round_offsets().round_lengths()</span>
+                <span class="c1"># inter = rio.windows.intersection(sq_win, window)</span>
+                <span class="c1"># # mark in global mask</span>
+                <span class="c1"># loc_row0 = int(round(inter.row_off - subset_row0))</span>
+                <span class="c1"># loc_col0 = int(round(inter.col_off - subset_col0))</span>
+                <span class="c1"># h = int(round(inter.height))</span>
+                <span class="c1"># w = int(round(inter.width))</span>
+                <span class="c1"># r1 = max(0, loc_row0); c1 = max(0, loc_col0)</span>
+                <span class="c1"># r2 = min(global_mask.shape[0], r1 + h)</span>
+                <span class="c1"># c2 = min(global_mask.shape[1], c1 + w)</span>
+                <span class="c1"># if r1 &lt; r2 and c1 &lt; c2:</span>
+                <span class="c1">#     global_mask[r1:r2, c1:c2] = f_index + 1</span>
+                <span class="c1"># used_nodes[f_index].append(node)</span>
+
+                <span class="c1"># ensure stats are correct</span>
+                <span class="c1"># import rasterstats</span>
+                <span class="c1"># assert rasterstats.zonal_stats(node.box, raster.name, stats=&quot;count&quot;)[0][&#39;count&#39;] == node.stats[&#39;count&#39;]</span>
+
+                <span class="c1"># End Debugging</span>
+
+                <span class="c1"># Add the partials of this node</span>
+                <span class="n">partials</span><span class="p">[</span><span class="n">f_index</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
+
+                <span class="n">rows</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">col0s</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">col1s</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="n">fully_inside</span> <span class="o">=</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&gt;=</span> <span class="n">n_r0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&lt;</span> <span class="n">n_r1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col0s</span> <span class="o">&gt;=</span> <span class="n">n_c0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col1s</span> <span class="o">&lt;=</span> <span class="n">n_c1</span><span class="p">)</span>
+                
+                <span class="c1"># Remove fully inside strips, as they are already accounted for</span>
+                <span class="c1"># by the node</span>
+                <span class="n">f_reading_table</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[</span><span class="o">~</span><span class="n">fully_inside</span><span class="p">]</span>
+
+                <span class="n">rows</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">col0s</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">col1s</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+
+                <span class="n">f_idxs</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span>
+
+                <span class="n">new_entries</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="c1"># Left cut: segments or strips crossing the node&#39;s left edge</span>
+                <span class="c1"># includes both the strips only crossing the left edge</span>
+                <span class="c1"># and segments crossing both the left and right edges</span>
+                <span class="n">Lmask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&gt;=</span> <span class="n">n_r0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&lt;</span> <span class="n">n_r1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col0s</span> <span class="o">&lt;</span> <span class="n">n_c0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col1s</span> <span class="o">&gt;</span> <span class="n">n_c0</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Lmask</span><span class="p">):</span>
+                        <span class="n">l_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">Lmask</span><span class="p">]</span>
+                        <span class="n">l_c0</span>   <span class="o">=</span> <span class="n">col0s</span><span class="p">[</span><span class="n">Lmask</span><span class="p">]</span>
+                        <span class="n">l_c1</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">col1s</span><span class="p">[</span><span class="n">Lmask</span><span class="p">],</span> <span class="n">n_c0</span><span class="p">)</span> <span class="c1"># cut at left edge</span>
+                        <span class="n">keep</span>   <span class="o">=</span> <span class="n">l_c1</span> <span class="o">&gt;</span> <span class="n">l_c0</span> <span class="c1"># drop zero-length</span>
+                        <span class="c1"># &quot;Cut&quot; the left edge, creating a new shorter segment in the left part</span>
+                        <span class="c1"># that ends at the node&#39;s left edge</span>
+                        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keep</span><span class="p">):</span>
+                            <span class="n">left_reading</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                                <span class="p">[</span><span class="n">l_rows</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">l_c0</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">l_c1</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">f_idxs</span><span class="p">[</span><span class="n">Lmask</span><span class="p">][</span><span class="n">keep</span><span class="p">]],</span>
+                                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+                            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                            <span class="n">new_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left_reading</span><span class="p">)</span>
+
+                <span class="c1"># Right cut: segments crossing the node&#39;s right edge</span>
+                <span class="c1"># includes both the strips only crossing the right edge</span>
+                <span class="c1"># and segments crossing both the left and right edges</span>
+                <span class="n">Rmask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&gt;=</span> <span class="n">n_r0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&lt;</span> <span class="n">n_r1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col1s</span> <span class="o">&gt;</span> <span class="n">n_c1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">col0s</span> <span class="o">&lt;</span> <span class="n">n_c1</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Rmask</span><span class="p">):</span>
+                    <span class="n">r_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">Rmask</span><span class="p">]</span>
+                    <span class="n">r_c0</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">col0s</span><span class="p">[</span><span class="n">Rmask</span><span class="p">],</span> <span class="n">n_c1</span><span class="p">)</span>  <span class="c1"># start at node&#39;s right edge</span>
+                    <span class="n">r_c1</span>   <span class="o">=</span> <span class="n">col1s</span><span class="p">[</span><span class="n">Rmask</span><span class="p">]</span>
+                    <span class="n">r_f</span>    <span class="o">=</span> <span class="n">f_idxs</span><span class="p">[</span><span class="n">Rmask</span><span class="p">]</span>
+                    <span class="c1"># &quot;Cut&quot; the right edge, creating a new shorter segment in the right part</span>
+                    <span class="c1"># that starts at the node&#39;s right edge</span>
+                    <span class="n">keep</span> <span class="o">=</span> <span class="n">r_c1</span> <span class="o">&gt;</span> <span class="n">r_c0</span>  <span class="c1"># drop zero-length pieces</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">keep</span><span class="p">):</span>
+                        <span class="n">right_reading</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                            <span class="p">[</span><span class="n">r_rows</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">r_c0</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">r_c1</span><span class="p">[</span><span class="n">keep</span><span class="p">],</span> <span class="n">r_f</span><span class="p">[</span><span class="n">keep</span><span class="p">]],</span>
+                            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                        <span class="n">new_entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right_reading</span><span class="p">)</span>
+
+                <span class="c1"># Keep everything that is outside the node as is</span>
+                <span class="c1"># outside means up and down the node, or completely</span>
+                <span class="c1"># starting and ending to the left or right of the node</span>
+                <span class="n">inside_rows</span>   <span class="o">=</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&gt;=</span> <span class="n">n_r0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rows</span> <span class="o">&lt;</span> <span class="n">n_r1</span><span class="p">)</span>
+                <span class="n">outside_mask</span>  <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">inside_rows</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">col1s</span> <span class="o">&lt;=</span> <span class="n">n_c0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">col0s</span> <span class="o">&gt;=</span> <span class="n">n_c1</span><span class="p">)</span>
+                <span class="n">outside_rows</span> <span class="o">=</span> <span class="n">f_reading_table</span><span class="p">[</span><span class="n">outside_mask</span><span class="p">]</span>
+
+                <span class="c1"># merge: outside + any left/right pieces</span>
+                <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">outside_rows</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">new_entries</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">part</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                        <span class="c1"># ensure int dtype and 2D shape</span>
+                        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+                <span class="n">f_reading_table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">outside_rows</span>
+
+                <span class="c1"># Debugging</span>
+
+                <span class="c1"># step_reading_table = f_reading_table.copy()</span>
+                <span class="c1"># # step_coord_table = f_coord_table.copy()</span>
+                <span class="c1"># # add column indicating if it was outside_rows or new_entries</span>
+                <span class="c1"># # was_outside = np.zeros(len(step_reading_table), dtype=bool)</span>
+                <span class="c1"># # was_outside[:len(outside_rows)] = True</span>
+
+                <span class="c1"># # sort new reading table by rows</span>
+                <span class="c1"># # sort_idx = np.lexsort((new_reading_table[:, 3], new_reading_table[:, 0]))</span>
+                <span class="c1"># step_sort_idx = np.argsort(step_reading_table[:, 0])</span>
+                <span class="c1"># step_reading_table = step_reading_table[step_sort_idx]</span>
+                <span class="c1"># &quot;Help me, Step Reading Table, I&#39;m stuck....&quot;</span>
+                <span class="c1"># # step_coord_table = step_coord_table[step_sort_idx]</span>
+                <span class="c1"># # was_outside = was_outside[step_sort_idx]</span>
+                <span class="c1"># rows, row_starts = np.unique(step_reading_table[:, 0], return_index=True)</span>
+                <span class="c1"># # yss = step_coord_table[:, 0]</span>
+                <span class="c1"># # yss = yss[row_starts]</span>
+                <span class="c1"># yss = (raster.transform * (np.zeros_like(rows), rows + 0.5))[1]</span>
+
+                <span class="c1"># row_start, row_end = int(np.floor(window.row_off)), int(</span>
+                <span class="c1">#     np.ceil(window.row_off + window.height)</span>
+                <span class="c1"># )</span>
+                <span class="c1"># col_start, col_end = int(np.floor(window.col_off)), int(</span>
+                <span class="c1">#     np.ceil(window.col_off + window.width)</span>
+                <span class="c1"># )</span>
+
+                <span class="c1"># from raptorstats.debugutils import ref_mask_rasterstats, compare_stats, plot_mask_comparison</span>
+                
+                <span class="c1"># for i, row in enumerate(rows):</span>
+                <span class="c1">#     start = row_starts[i]</span>
+                <span class="c1">#     end = row_starts[i + 1] if i + 1 &lt; len(row_starts) else len(step_reading_table)</span>
+                <span class="c1">#     reading_line = step_reading_table[start:end]</span>
+
+                <span class="c1">#     min_col = np.min(reading_line[:, 1])</span>
+                <span class="c1">#     max_col = np.max(reading_line[:, 2])</span>
+                <span class="c1">#     reading_window = rio.windows.Window(</span>
+                <span class="c1">#         col_off=min_col, row_off=row, width=max_col - min_col, height=1</span>
+                <span class="c1">#     )</span>
+
+                <span class="c1">#     curr_y = yss[i]</span>
+                <span class="c1">#     # if np.allclose(curr_y, 3851869.0157146556):</span>
+                <span class="c1">#     print(f&quot;Processing row {row} (y={curr_y})&quot;)</span>
+
+                <span class="c1">#     # Does not handle nodata</span>
+                <span class="c1">#     data = raster.read(1, window=reading_window, masked=True)</span>
+                <span class="c1">#     if data.shape[0] == 0:</span>
+                <span class="c1">#         continue</span>
+                <span class="c1">#     data = data[0]</span>
+
+                <span class="c1">#     for j, col0, col1, f_index in reading_line:</span>
+                <span class="c1">#         row_in_mask = row - row_start</span>
+                <span class="c1">#         col0_in_mask = col0 - col_start</span>
+                <span class="c1">#         col1_in_mask = col1 - col_start</span>
+                <span class="c1">#         global_mask[row_in_mask, col0_in_mask:col1_in_mask] = f_index + 1</span>
+                <span class="c1">#         # if row == 512 or row == 479:</span>
+                <span class="c1">#         #     global_mask[row_in_mask, col0_in_mask:col1_in_mask] = -1</span>
+                <span class="c1">#         # if not was_outside[i]:</span>
+                <span class="c1">#         #     global_mask[row_in_mask, col0_in_mask:col1_in_mask] = -1</span>
+                <span class="c1">#         # else:</span>
+                <span class="c1">#         #     global_mask[row_in_mask, col0_in_mask:col1_in_mask] = -1</span>
+                <span class="c1"># # global_mask = global_mask[:-1, :]  # remove the last row added for debugging</span>
+
+                
+                <span class="c1"># ref_mask = ref_mask_rasterstats(features, raster, window)</span>
+                <span class="c1"># print(f&quot;Node Level: {node.level}&quot;)</span>
+                <span class="c1"># # plot_mask_comparison(global_mask, ref_mask, features, raster.transform, window=window, scanlines=yss, idx=self.idx, used_nodes=used_nodes[f_index])</span>
+                <span class="c1"># global_mask = np.zeros((H, W), dtype=int)  # reset global mask for next node</span>
+                <span class="c1"># print(&#39;done&#39;)</span>
+
+                <span class="c1"># End Debugging</span>
+            <span class="n">new_reading_table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_reading_table</span><span class="p">)</span>
+
+        <span class="c1"># Sort the lines by row so we can process them using scanline</span>
+        <span class="n">new_reading_table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">new_reading_table</span><span class="p">)</span>
+        <span class="n">sort_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">new_reading_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">reading_table</span> <span class="o">=</span> <span class="n">new_reading_table</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">process_reading_table</span><span class="p">(</span>
+            <span class="n">reading_table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">,</span> <span class="n">partials</span><span class="o">=</span><span class="n">partials</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Debugging</span>
+        <span class="c1"># rows, row_starts = np.unique(reading_table[:, 0], return_index=True)</span>
+
+        <span class="c1"># row_start, row_end = int(np.floor(window.row_off)), int(</span>
+        <span class="c1">#     np.ceil(window.row_off + window.height)</span>
+        <span class="c1"># )</span>
+        <span class="c1"># col_start, col_end = int(np.floor(window.col_off)), int(</span>
+        <span class="c1">#     np.ceil(window.col_off + window.width)</span>
+        <span class="c1"># )</span>
+
+        <span class="c1"># from raptorstats.debugutils import ref_mask_rasterstats, compare_stats, plot_mask_comparison</span>
+
+        <span class="c1"># diffs = compare_stats(self.results, self.raster.files[0], features, stats=self.stats, show_diff=True, precision=5)</span>
+        
+        <span class="c1"># # diffs = []</span>
+        <span class="c1"># if len(diffs) == 0:</span>
+        <span class="c1">#     print(&quot;No differences found!!!&quot;)</span>
+        <span class="c1">#     return self.results</span>
+        <span class="c1"># diff_indices = [d[&#39;feature&#39;] for d in diffs]</span>
+        <span class="c1"># diff_features = features.iloc[diff_indices]</span>
+        <span class="c1"># f_index_to_diff_features = { f: i for i, f in enumerate(diff_indices) }</span>
+
+        <span class="c1"># for i, row in enumerate(rows):</span>
+        <span class="c1">#     start = row_starts[i]</span>
+        <span class="c1">#     end = row_starts[i + 1] if i + 1 &lt; len(row_starts) else len(reading_table)</span>
+        <span class="c1">#     reading_line = reading_table[start:end]</span>
+
+        <span class="c1">#     min_col = np.min(reading_line[:, 1])</span>
+        <span class="c1">#     max_col = np.max(reading_line[:, 2])</span>
+        <span class="c1">#     reading_window = rio.windows.Window(</span>
+        <span class="c1">#         col_off=min_col, row_off=row, width=max_col - min_col, height=1</span>
+        <span class="c1">#     )</span>
+
+        <span class="c1">#     # Does not handle nodata</span>
+        <span class="c1">#     data = raster.read(1, window=reading_window, masked=True)</span>
+        <span class="c1">#     if data.shape[0] == 0:</span>
+        <span class="c1">#         continue</span>
+        <span class="c1">#     data = data[0]</span>
+
+        <span class="c1">#     for j, col0, col1, f_index in reading_line:</span>
+        <span class="c1">#         row_in_mask = row - row_start</span>
+        <span class="c1">#         col0_in_mask = col0 - col_start</span>
+        <span class="c1">#         col1_in_mask = col1 - col_start</span>
+        <span class="c1">#         if len(diff_indices) &gt; 0:</span>
+        <span class="c1">#             if f_index in diff_indices:</span>
+        <span class="c1">#                 global_mask[row_in_mask, col0_in_mask:col1_in_mask] = f_index_to_diff_features[f_index] + 1</span>
+        <span class="c1">#         else:</span>
+        <span class="c1">#             global_mask[row_in_mask, col0_in_mask:col1_in_mask] = f_index + 1</span>
+
+        <span class="c1"># global_mask = global_mask[:-1, :]  # remove the last row added for debugging</span>
+
+        
+        <span class="c1"># ref_mask = ref_mask_rasterstats(diff_features if len(diff_indices) &gt; 0 else features, raster, window)</span>
+        <span class="c1"># diff_used_nodes = []</span>
+        <span class="c1"># for di in diff_indices:</span>
+        <span class="c1">#     diff_used_nodes.append(used_nodes[di])</span>
+        <span class="c1"># diff_used_nodes = [n for nlist in diff_used_nodes for n in nlist]</span>
+        <span class="c1"># used_nodes= [ n for nlist in used_nodes for n in nlist ]</span>
+        <span class="c1"># # used_nodes = []</span>
+        <span class="c1"># print(diffs)</span>
+        <span class="c1"># plot_mask_comparison(global_mask, ref_mask, diff_features if len(diff_indices) &gt; 0 else features, raster.transform, window=window, scanlines=inter_ys, idx=self.idx, used_nodes=diff_used_nodes if len(diff_indices) &gt;0 else used_nodes)</span>
+        <span class="c1"># print(&#39;done&#39;)</span>
+
+        <span class="c1"># End Debugging code</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

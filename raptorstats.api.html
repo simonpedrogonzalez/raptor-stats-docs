@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>raptorstats.api module &mdash; raptorstats  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="raptorstats.io module" href="raptorstats.io.html" />
+    <link rel="prev" title="raptorstats.agqt module" href="raptorstats.agqt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            raptorstats
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">raptor-stats</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="raptorstats.html">raptorstats package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="raptorstats.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="raptorstats.agqt.html">raptorstats.agqt module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">raptorstats.api module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#raptorstats.api.zonal_stats"><code class="docutils literal notranslate"><span class="pre">zonal_stats()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="raptorstats.io.html">raptorstats.io module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="raptorstats.node.html">raptorstats.node module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="raptorstats.scanline.html">raptorstats.scanline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="raptorstats.stats.html">raptorstats.stats module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="raptorstats.zonal_stat_method.html">raptorstats.zonal_stat_method module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="raptorstats.html#module-raptorstats">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">raptorstats</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="raptorstats.html">raptorstats package</a></li>
+      <li class="breadcrumb-item active">raptorstats.api module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/raptorstats.api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-raptorstats.api">
+<span id="raptorstats-api-module"></span><h1>raptorstats.api module<a class="headerlink" href="#module-raptorstats.api" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="raptorstats.api.zonal_stats">
+<span class="sig-prename descclassname"><span class="pre">raptorstats.api.</span></span><span class="sig-name descname"><span class="pre">zonal_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scanline'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/raptorstats/api.html#zonal_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raptorstats.api.zonal_stats" title="Link to this definition"></a></dt>
+<dd><p>Zonal statistics using the AggQuadTree or Scanline methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vectors</strong> (<em>str</em><em> | </em><em>GeoDataFrame</em><em> | </em><em>anything GeoPandas can read</em>)</p></li>
+<li><p><strong>raster</strong> (<em>str</em><em> | </em><em>path-like</em><em> | </em><em>rasterio.DatasetReader</em>)</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em>[</em><em>str</em><em>]            </em><em>statistics to compute</em><em> (</em><em>min</em><em>, </em><em>max</em><em>, </em><em>mean</em><em>, </em><em>etc.</em><em>)</em>)</p></li>
+<li><p><strong>layer</strong> (<em>int</em><em> | </em><em>str            layer name/number for multi-layer vector sources</em>)</p></li>
+<li><p><strong>band</strong> (<em>int                  raster band</em><em> (</em><em>1-based</em><em>)</em>)</p></li>
+<li><p><strong>nodata</strong> (<em>float</em><em> | </em><em>None         overrides raster NODATA value</em>)</p></li>
+<li><p><strong>affine</strong> (affine.Affine | None required if <cite>raster</cite> is a NumPy array (not used here))</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em> | </em><em>None           prefix every stat key</em><em> (</em><em>useful for merges</em><em>)</em>)</p></li>
+<li><p><strong>categorical</strong> (<em>bool              whether to compute categorical stats</em><em> (</em><em>histogram</em><em>)</em>)</p></li>
+<li><p><strong>method</strong> (<em>str                  zonal statistics method to use</em><em> (</em><em>'agqt'</em><em> or </em><em>'scanline'</em><em>)</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[dict]                      one stats-dict (or Feature) per input geometry</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="raptorstats.agqt.html" class="btn btn-neutral float-left" title="raptorstats.agqt module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="raptorstats.io.html" class="btn btn-neutral float-right" title="raptorstats.io module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
