@@ -45,10 +45,14 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">raptor-stats</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#methods">Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#credits">Credits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-zonal-statistics-using-efficient-raptor-raster-vector-methods">Compute zonal statistics using efficient Raptor (Raster+Vector) methods.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#methods">Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance">Performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#credits">Credits</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="raptorstats.html">raptorstats package</a></li>
@@ -80,39 +84,60 @@
              
   <section id="raptor-stats">
 <h1>raptor-stats<a class="headerlink" href="#raptor-stats" title="Link to this heading"></a></h1>
-<p><a class="reference external" href="https://simonpedrogonzalez.github.io/raptor-stats-docs/index.html">Raptor (Raster-Vector) Zonal Statistics</a></p>
-<p>This package provides a simple interface to calculate zonal statistics using Raptor Methods with a <code class="docutils literal notranslate"><span class="pre">rasterstats</span></code>-like api.</p>
+<a class="reference external image-reference" href="https://simonpedrogonzalez.github.io/raptor-stats-docs/index.html"><img alt="Docs: latest" src="https://img.shields.io/badge/Docs-latest-blue" />
+</a>
+<a class="reference external image-reference" href="https://pypi.org/project/raptor-stats/"><img alt="PyPI" src="https://img.shields.io/pypi/v/raptor-stats" />
+</a>
+<a class="reference external image-reference" href="https://github.com/simonpedrogonzalez/raptor-stats"><img alt="Python  3.12.8+" src="https://img.shields.io/badge/python-3.12.8+-blue.svg" />
+</a>
+<a class="reference external image-reference" href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" />
+</a>
+<section id="compute-zonal-statistics-using-efficient-raptor-raster-vector-methods">
+<h2>Compute zonal statistics using efficient Raptor (Raster+Vector) methods.<a class="headerlink" href="#compute-zonal-statistics-using-efficient-raptor-raster-vector-methods" title="Link to this heading"></a></h2>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
-<p>You can install the package using pip:</p>
+<h3>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>raptor-stats
 </pre></div>
 </div>
 </section>
 <section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats</span><span class="w"> </span><span class="kn">import</span> <span class="n">zonal_stats</span>
 
-<span class="c1"># Example usage</span>
 <span class="n">stats</span> <span class="o">=</span> <span class="n">zonal_stats</span><span class="p">(</span><span class="s2">&quot;path/to/vector.shp&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/raster.tif&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;scanline&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Note: see the <a class="reference external" href="https://simonpedrogonzalez.github.io/raptor-stats-docs/raptorstats.api.html#raptorstats.api.zonal_stats">zonal_stats API docs</a> for more details on input types and additional parameters.</p>
+<p>See the <a class="reference external" href="https://simonpedrogonzalez.github.io/raptor-stats-docs/raptorstats.api.html#raptorstats.api.zonal_stats">zonal_stats API docs</a> for more details on input types and additional parameters.</p>
 </section>
 <section id="methods">
-<h2>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h2>
+<h3>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">scanline</span></code>: Uses a scanline algorithm for efficient zonal statistics. Suitable for large datasets in a single pass (large raster, many features).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">agqt</span></code>: Uses the aggregated quadtree method. Suitable for several and repeated queries over a large dataset (large raster, many features).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scanline</span></code>: Scans the raster file once, line by line, and computes all the intersections with the vector layer in a single pass. Suitable for fast one-time run results.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">agqt</span></code>: Builds a QuadTree with precomputed statistics, then combines it with the scanline method to answer queries more efficiently. Suitable for systems that repeatedly query changing vector layers over the same raster.</p></li>
+</ul>
+</section>
+<section id="performance">
+<h3>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h3>
+<p>Raptor methods performance advantage increases with the size of the input raster and number of features. For example, with an ~1.9 billion pixel raster and 50 features (US states):</p>
+<a class="reference external image-reference" href="assets/total_time_s_states.png"><img alt="Raptor methods performance comparison" src="assets/total_time_s_states.png" />
+</a>
+<p>For the same raster, on but around 3000 features (US counties):</p>
+<a class="reference external image-reference" href="assets/total_time_s_counties.png"><img alt="Raptor methods performance comparison" src="assets/total_time_s_counties.png" />
+</a>
+<p>NOTES:</p>
+<ul class="simple">
+<li><p>These tests were made on a i7-8750H (2019) 16GB RAM Linux machine.</p></li>
+<li><p>The performance of the agqt method depends on the depth of the tree selected and the size of the features.</p></li>
 </ul>
 </section>
 <section id="credits">
-<h2>Credits<a class="headerlink" href="#credits" title="Link to this heading"></a></h2>
+<h3>Credits<a class="headerlink" href="#credits" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Author: <a class="reference external" href="https://simonpedrogonzalez.github.io/">Simon Pedro Gonzalez</a></p></li>
-<li><p>This package is based on the following <span class="raw-html-m2r"><a href="_static/mdml_final_report.pdf" download>project</a></span>, where you can read more about the zonal stats problem, methods and performance comparison.</p></li>
-<li><p>This package API and tests are heavily inspired in the <a class="reference external" href="https://github.com/perrygeo/python-rasterstats">rasterstats</a> package by <a class="reference external" href="https://github.com/perrygeo">Matthew Perry</a>.</p></li>
+<li><p>Author: <a class="reference external" href="https://simonpedrogonzalez.github.io/">Simon Pedro Gonzalez</a>.</p></li>
+<li><p>This package is based on the following <span class="raw-html-m2r"><a href="assets/mdml_final_report.pdf" download>project</a></span>, where you can read more about the zonal stats problem, methods and performance comparison.</p></li>
+<li><p>This package API is inspired in the <a class="reference external" href="https://github.com/perrygeo/python-rasterstats">rasterstats</a> package by <a class="reference external" href="https://github.com/perrygeo">Matthew Perry</a>.</p></li>
 </ul>
+</section>
 </section>
 </section>
 

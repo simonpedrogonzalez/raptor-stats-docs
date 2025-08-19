@@ -49,6 +49,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="raptorstats.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="raptorstats.agqt.html">raptorstats.agqt module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">raptorstats.api module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#raptorstats.api.build_agqt_index"><code class="docutils literal notranslate"><span class="pre">build_agqt_index()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#raptorstats.api.zonal_stats"><code class="docutils literal notranslate"><span class="pre">zonal_stats()</span></code></a></li>
 </ul>
 </li>
@@ -92,6 +93,41 @@
   <section id="module-raptorstats.api">
 <span id="raptorstats-api-module"></span><h1>raptorstats.api module<a class="headerlink" href="#module-raptorstats.api" title="Link to this heading"></a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="raptorstats.api.build_agqt_index">
+<span class="sig-prename descclassname"><span class="pre">raptorstats.api.</span></span><span class="sig-name descname"><span class="pre">build_agqt_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/raptorstats/api.html#build_agqt_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raptorstats.api.build_agqt_index" title="Link to this definition"></a></dt>
+<dd><p>Build AggQuadTree index files for the given raster file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raster</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>rasterio.io.DatasetReader</em><em> | </em><em>np.ndarray</em><em> | </em><em>anything rasterio can read</em>)</p></li>
+<li><p><strong>max_depth</strong> (<em>int</em>) – Maximum depth for the AggQuadTree index. The index building time for the <cite>agqt</cite> method depends
+on the specified tree depth. For example, building a depth-10 quadtree requires significant time
+and memory, as the algorithm needs to compute statistics for about (4^11 - 1) / 3 ≈ 1.4 million
+rectangular features. The depth of the tree needed depends on the size of the expected features.
+A poorly chosen depth (too low, so that leaf nodes don’t fit the features, or too high,
+making the tree unnecessarily large) can lead to slower times for the <cite>agqt</cite> method compared to
+the <cite>scanline</cite> method.</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Statistics to compute. Default: [“count”, “min”, “max”, “mean”], also supported:
+[“sum”, “std”, “median”, “majority”, “minority”, “unique”, “range”, “nodata”, “nan”]. Important: the
+computed stats for the indices must match the later required stats for the computation, when running zonal_stats.</p></li>
+<li><p><strong>band</strong> (<em>int</em>) – Raster band (1-based).</p></li>
+<li><p><strong>nodata</strong> (<em>float</em><em> | </em><em>None</em>) – Overrides raster NODATA value.</p></li>
+<li><p><strong>affine</strong> (<em>affine.Affine</em><em> | </em><em>None</em>) – Required if <cite>raster</cite> is a NumPy array.</p></li>
+<li><p><strong>categorical</strong> (<em>bool</em>) – Whether to compute categorical stats (histogram).</p></li>
+<li><p><strong>index_path</strong> (<em>str</em><em> | </em><em>None</em>) – Path to the index file (if using AggQuadTree), default None. If the file doesn’t exist, it will be created.
+If not specified, the program will try to use a default path in the current running dir.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The AggQuadTree index object (it is already saved to a file).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>rtree.index.Index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="raptorstats.api.zonal_stats">
 <span class="sig-prename descclassname"><span class="pre">raptorstats.api.</span></span><span class="sig-name descname"><span class="pre">zonal_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scanline'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/raptorstats/api.html#zonal_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raptorstats.api.zonal_stats" title="Link to this definition"></a></dt>
 <dd><p>Zonal statistics using the AggQuadTree or Scanline methods.</p>
@@ -104,22 +140,46 @@ same CRS as the raster.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vectors</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>geopandas.GeoDataFrame</em><em> |</em>) – shapely.geometry.base.BaseGeometry | Sequence[BaseGeometry] |
-dict (GeoJSON-like mapping),
-anything GeoPandas can read.</p></li>
-<li><p><strong>raster</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>rasterio.io.DatasetReader</em><em> | </em><em>np.ndarray</em><em> | </em><em>anything rasterio can read</em>)</p></li>
-<li><p><strong>stats</strong> (<em>list</em><em>[</em><em>str</em><em>]            </em><em>statistics to compute</em><em> (</em><em>min</em><em>, </em><em>max</em><em>, </em><em>mean</em><em>, </em><em>etc.</em><em>)</em>)</p></li>
-<li><p><strong>layer</strong> (<em>int</em><em> | </em><em>str            layer name/number for multi-layer vector sources</em>)</p></li>
-<li><p><strong>band</strong> (<em>int                  raster band</em><em> (</em><em>1-based</em><em>)</em>)</p></li>
-<li><p><strong>nodata</strong> (<em>float</em><em> | </em><em>None         overrides raster NODATA value</em>)</p></li>
-<li><p><strong>affine</strong> (affine.Affine | None required if <cite>raster</cite> is a NumPy array)</p></li>
-<li><p><strong>prefix</strong> (<em>str</em><em> | </em><em>None           prefix every stat key</em><em> (</em><em>useful for merges</em><em>)</em>)</p></li>
-<li><p><strong>categorical</strong> (<em>bool              whether to compute categorical stats</em><em> (</em><em>histogram</em><em>)</em>)</p></li>
-<li><p><strong>method</strong> (<em>str                  zonal statistics method to use</em><em> (</em><em>'agqt'</em><em> or </em><em>'scanline'</em><em>)</em>)</p></li>
+<li><p><strong>vectors</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>geopandas.GeoDataFrame</em><em> | </em><em>shapely.geometry.base.BaseGeometry</em><em> | </em><em>Sequence</em><em>[</em><em>BaseGeometry</em><em>] </em><em>| </em><em>dict</em><em> (</em><em>GeoJSON-like mapping</em><em>) </em><em>| </em><em>anything GeoPandas can read.</em>) – Vector source containing the geometries. Currently only closed polygons are supported (no single points or lines).</p></li>
+<li><p><strong>raster</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>rasterio.io.DatasetReader</em><em> | </em><em>np.ndarray</em><em> | </em><em>anything rasterio can read</em>) – Raster source containing the data to compute statistics on.</p></li>
+<li><p><strong>stats</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Statistics to compute. Default: [“count”, “min”, “max”, “mean”], also supported:
+[“sum”, “std”, “median”, “majority”, “minority”, “unique”, “range”, “nodata”, “nan”].</p></li>
+<li><p><strong>layer</strong> (<em>int</em><em> | </em><em>str</em>) – Layer name/number for multi-layer vector sources</p></li>
+<li><p><strong>band</strong> (<em>int</em>) – Raster band (default 1)</p></li>
+<li><p><strong>nodata</strong> (<em>float</em><em> | </em><em>None</em>) – Overrides raster NODATA value</p></li>
+<li><p><strong>affine</strong> (<em>affine.Affine</em><em> | </em><em>None</em>) – Required if <cite>raster</cite> is a NumPy array</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em> | </em><em>None</em>) – Prefix every stat key (useful for merges)</p></li>
+<li><p><strong>categorical</strong> (<em>bool</em>) – Whether to compute categorical stats (histogram)</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – <dl class="simple">
+<dt>Zonal statistics method to use (‘agqt’ or ‘scanline’). Default ‘scanline’.</dt><dd><ul>
+<li><p><em>scanline</em>: builds one line per raster row, calculates the intersections with the vector layer,
+identifying the pixels corresponding to each vector feature, and computes the statistics. It reads
+the raster in a single pass, row by row, computing all the feature stats.</p></li>
+<li><p><em>agqt</em>: builds an AggQuadTree index for the raster, which allows for fast querying of the statistics
+for a grid of rectangular features. During the zonal_stats call, it identifies the rectangular features
+inside the vector geometries and takes the pre-computed stats from the index file, while using the scanline
+method for pixels inside the geometry that are not covered by the rectangular features.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list[dict]                      one stats-dict (or Feature) per input geometry</p>
+</dl>
+</p></li>
+<li><p><strong>build_indices</strong> (<em>bool</em>) – Whether to force build (overwrite) the AggQuadTree index if it already exists. Default False.</p></li>
+<li><p><strong>index_path</strong> (<em>str</em>) – Path to the index file (if using agqt), default None. If the file doesn’t exist, it will be created.
+If not specified, the program will try to use a default path in the current running dir.</p></li>
+<li><p><strong>max_depth</strong> (<em>int</em>) – Maximum depth for the AggQuadTree index (if using agqt), default 5. The index building time for the <cite>agqt</cite> method depends
+on the specified tree depth. For example, building a depth-10 quadtree requires significant time
+and memory, as the algorithm needs to compute statistics for about (4^11 - 1) / 3 ≈ 1.4 million
+rectangular features. The depth of the tree needed depends on the size of the expected features.
+A poorly chosen depth (too low, so that leaf nodes don’t fit inside the features, or too high,
+making the tree unnecessarily large) can lead to slower times for the <cite>agqt</cite> method compared to
+the <cite>scanline</cite> method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>one stats-dict per input feature</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[dict]</p>
 </dd>
 </dl>
 </dd></dl>

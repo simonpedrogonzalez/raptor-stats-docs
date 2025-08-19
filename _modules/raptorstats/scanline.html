@@ -79,8 +79,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">shapely</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">MultiLineString</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.zonal_stat_method</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZonalStatMethod</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">raptorstats.zonal_stat_method</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZonalStatMethod</span>
 
 
 <div class="viewcode-block" id="xy_to_rowcol">
@@ -89,15 +89,17 @@
     <span class="n">cols</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">transform</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
 
     <span class="n">rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">cols</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>   <span class="c1"># left-inclusive</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">cols</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># left-inclusive</span>
     <span class="c1"># cols = np.round(cols).astype(int).clip(min=0)</span>
     <span class="k">return</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span></div>
+
 
 
 <div class="viewcode-block" id="rows_to_ys">
 <a class="viewcode-back" href="../../raptorstats.scanline.html#raptorstats.scanline.rows_to_ys">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rows_to_ys</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">transform</span> <span class="o">*</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span></div>
+
 
 
 <div class="viewcode-block" id="build_intersection_table">
@@ -185,16 +187,23 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">intersection_table</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-    
+
     <span class="n">intersection_table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">intersection_table</span><span class="p">)</span>
     <span class="n">f_index</span> <span class="o">=</span> <span class="n">intersection_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">coords</span> <span class="o">=</span> <span class="n">intersection_table</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">f_index</span><span class="p">,</span> <span class="n">coords</span></div>
 
 
+
 <div class="viewcode-block" id="build_reading_table">
 <a class="viewcode-back" href="../../raptorstats.scanline.html#raptorstats.scanline.build_reading_table">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">build_reading_table</span><span class="p">(</span><span class="n">f_index</span><span class="p">,</span> <span class="n">intersection_coords</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">,</span> <span class="n">return_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_by_feature</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_reading_table</span><span class="p">(</span>
+    <span class="n">f_index</span><span class="p">,</span>
+    <span class="n">intersection_coords</span><span class="p">,</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">,</span>
+    <span class="n">return_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">sort_by_feature</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a reading table indicating which pixels to read for each feature.</span>
 
 <span class="sd">    Parameters</span>
@@ -231,22 +240,30 @@
         <span class="c1"># sort by feature first then by row</span>
         <span class="n">sort_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">reading_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">reading_table</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># sort just by row  </span>
+        <span class="c1"># sort just by row</span>
         <span class="n">sort_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">reading_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
-    
+
     <span class="k">if</span> <span class="n">return_coordinates</span><span class="p">:</span>
-        <span class="n">coor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">inter_ys</span><span class="p">,</span> <span class="n">inter_x0s</span><span class="p">,</span> <span class="n">inter_x1s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
-        <span class="p">)[</span><span class="n">sort_idx</span><span class="p">]</span> <span class="c1"># they are separate cause reading table is integer and coordinates are float</span>
+        <span class="n">coor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">inter_ys</span><span class="p">,</span> <span class="n">inter_x0s</span><span class="p">,</span> <span class="n">inter_x1s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span>
+            <span class="n">sort_idx</span>
+        <span class="p">]</span>  <span class="c1"># they are separate cause reading table is integer and coordinates are float</span>
 
         <span class="k">return</span> <span class="n">reading_table</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">],</span> <span class="n">coor</span>
 
     <span class="k">return</span> <span class="n">reading_table</span><span class="p">[</span><span class="n">sort_idx</span><span class="p">]</span></div>
 
 
+
 <div class="viewcode-block" id="process_reading_table">
 <a class="viewcode-back" href="../../raptorstats.scanline.html#raptorstats.scanline.process_reading_table">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">process_reading_table</span><span class="p">(</span><span class="n">reading_table</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">Stats</span><span class="p">,</span> <span class="n">partials</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_reading_table</span><span class="p">(</span>
+    <span class="n">reading_table</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">features</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">,</span>
+    <span class="n">stats</span><span class="p">:</span> <span class="n">Stats</span><span class="p">,</span>
+    <span class="n">partials</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_collected_rows_percentage</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read the pixels indicated by the reading table and compute statistics.</span>
 
 <span class="sd">    Parameters</span>
@@ -268,9 +285,31 @@
 <span class="sd">        A list of statistics for each feature</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_partials</span><span class="p">(</span>
+        <span class="n">pixel_values_per_feature</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">results_per_feature</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">Stats</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute partials and append to the results_per_feature list. Both lists are n_features long.</span>
+<span class="sd">        Assumes pixel_values_per_feature is a list of lists, and it&#39;s ordered by feature index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pixel_values_per_feature</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pixel_values_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">feature_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">mask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">feature_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pixel_values_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="c1"># get the stats</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">feature_data</span><span class="p">)</span>
+            <span class="n">results_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results_per_feature</span>
+
     <span class="n">rows</span><span class="p">,</span> <span class="n">row_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">reading_table</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">pixel_values_per_feature</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">geometry</span><span class="p">))]</span>
+    <span class="n">results_per_feature</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">geometry</span><span class="p">))]</span>
+
+    <span class="n">max_rows</span> <span class="o">=</span> <span class="n">max_collected_rows_percentage</span> <span class="o">/</span> <span class="mi">100</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="n">row_count</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">row_starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -298,20 +337,34 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pixel_values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">pixel_values_per_feature</span><span class="p">[</span><span class="n">f_index</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pixel_values</span><span class="p">)</span>
 
-    <span class="c1"># combine the results</span>
-    <span class="n">results_per_feature</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pixel_values_per_feature</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">pixel_values_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-            <span class="n">feature_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">mask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># This is a chunking mechanism to avoid memory issues</span>
+        <span class="c1"># for large datasets</span>
+        <span class="k">if</span> <span class="n">row_count</span> <span class="o">&gt;=</span> <span class="n">max_rows</span><span class="p">:</span>
+            <span class="n">results_per_feature</span> <span class="o">=</span> <span class="n">compute_partials</span><span class="p">(</span>
+                <span class="n">pixel_values_per_feature</span><span class="p">,</span> <span class="n">results_per_feature</span><span class="p">,</span> <span class="n">stats</span>
+            <span class="p">)</span>
+            <span class="c1"># reset the pixel values per feature</span>
+            <span class="n">pixel_values_per_feature</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">geometry</span><span class="p">))]</span>
+            <span class="c1"># reset the row count</span>
+            <span class="n">row_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">feature_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pixel_values_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="c1"># get the stats</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">feature_data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">partials</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">from_partials</span><span class="p">([</span><span class="n">r</span><span class="p">,</span> <span class="o">*</span><span class="n">partials</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
-        <span class="n">results_per_feature</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">row_count</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="n">results_per_feature</span></div>
+    <span class="c1"># If there are still pixel values left, compute the partials</span>
+    <span class="k">if</span> <span class="n">pixel_values_per_feature</span><span class="p">:</span>
+        <span class="n">results_per_feature</span> <span class="o">=</span> <span class="n">compute_partials</span><span class="p">(</span>
+            <span class="n">pixel_values_per_feature</span><span class="p">,</span> <span class="n">results_per_feature</span><span class="p">,</span> <span class="n">stats</span>
+        <span class="p">)</span>
+
+    <span class="n">final_results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results_per_feature</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">partials</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">partials</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="c1"># If partials are provided, combine them with the results</span>
+            <span class="n">results_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">partials</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">from_partials</span><span class="p">(</span><span class="n">results_per_feature</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">final_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">final_results</span></div>
 
 
 
@@ -326,7 +379,6 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_precomputations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="n">rio</span><span class="o">.</span><span class="n">DatasetReader</span><span class="p">):</span>
         <span class="c1"># NOTE: ASSUMES NORTH UP, NO SHEAR AFFINE. ASSUMES GEOMETRIES ARE POLYGONS OR MULTIPOLYGONS (NO POINTS, MULTIPOINTS, LINES)</span>
-        
         <span class="n">f_index</span><span class="p">,</span> <span class="n">intersection_coords</span> <span class="o">=</span> <span class="n">build_intersection_table</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">intersection_coords</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
@@ -334,11 +386,17 @@
                 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">features</span><span class="o">.</span><span class="n">geometry</span>
             <span class="p">]</span>
             <span class="k">return</span>
+        <span class="n">reading_table</span> <span class="o">=</span> <span class="n">build_reading_table</span><span class="p">(</span>
+            <span class="n">f_index</span><span class="p">,</span>
+            <span class="n">intersection_coords</span><span class="p">,</span>
+            <span class="n">raster</span><span class="p">,</span>
+            <span class="n">return_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">sort_by_feature</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">process_reading_table</span><span class="p">(</span>
+            <span class="n">reading_table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span>
+        <span class="p">)</span>
 
-        <span class="n">reading_table</span> <span class="o">=</span> <span class="n">build_reading_table</span><span class="p">(</span><span class="n">f_index</span><span class="p">,</span> <span class="n">intersection_coords</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="n">return_coordinates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_by_feature</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">process_reading_table</span><span class="p">(</span><span class="n">reading_table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">raster</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
-        
         <span class="c1"># Debugging code</span>
         <span class="c1"># window = rio.features.geometry_window(</span>
         <span class="c1">#     raster,</span>
@@ -362,7 +420,6 @@
         <span class="c1">#     np.ceil(window.col_off + window.width)</span>
         <span class="c1"># )</span>
 
-        
         <span class="c1"># diffs = compare_stats(self.results, self.raster.files[0], features, stats=self.stats, show_diff=True, precision=5)</span>
         <span class="c1"># # diffs = [diffs[0]]</span>
         <span class="c1"># diff_indices = [d[&#39;feature&#39;] for d in diffs]</span>
@@ -400,7 +457,6 @@
 
         <span class="c1"># global_mask = global_mask[:-1, :]  # remove the last row added for debugging</span>
 
-        
         <span class="c1"># ref_mask = ref_mask_rasterstats(diff_features if len(diff_indices) &gt; 0 else features, raster, window)</span>
 
         <span class="c1"># print(diffs)</span>

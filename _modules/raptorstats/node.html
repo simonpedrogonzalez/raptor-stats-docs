@@ -70,8 +70,8 @@
            <div itemprop="articleBody">
              
   <h1>Source code for raptorstats.node</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">Geometry</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">rasterio</span><span class="w"> </span><span class="kn">import</span> <span class="n">windows</span> <span class="k">as</span> <span class="n">rio_windows</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">rasterio</span><span class="w"> </span><span class="kn">import</span> <span class="n">windows</span> <span class="k">as</span> <span class="n">rio_windows</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">Geometry</span>
 
 
 <div class="viewcode-block" id="Node">
@@ -82,13 +82,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_id</span> <span class="o">=</span> <span class="n">parent_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="n">_box</span>
-        <span class="n">sq</span> <span class="o">=</span> <span class="n">rio_windows</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span>
-            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">round_offsets</span><span class="p">()</span><span class="o">.</span><span class="n">round_lengths</span><span class="p">()</span>
-        <span class="n">r0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">row_off</span><span class="p">)</span>                 <span class="c1"># top row (inclusive)</span>
-        <span class="n">r1</span> <span class="o">=</span> <span class="n">r0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>             <span class="c1"># bottom row (exclusive)</span>
-        <span class="n">c0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">col_off</span><span class="p">)</span>                 <span class="c1"># left col (inclusive)</span>
-        <span class="n">c1</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>              <span class="c1"># right col (exclusive)</span>
+        <span class="n">sq</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">rio_windows</span><span class="o">.</span><span class="n">from_bounds</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">round_offsets</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">round_lengths</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">r0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">row_off</span><span class="p">)</span>  <span class="c1"># top row (inclusive)</span>
+        <span class="n">r1</span> <span class="o">=</span> <span class="n">r0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>  <span class="c1"># bottom row (exclusive)</span>
+        <span class="n">c0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">col_off</span><span class="p">)</span>  <span class="c1"># left col (inclusive)</span>
+        <span class="n">c1</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">sq</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>  <span class="c1"># right col (exclusive)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pixel_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">r0</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">c0</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="n">stats</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="n">max_depth</span>
