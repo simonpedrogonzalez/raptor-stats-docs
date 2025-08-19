@@ -84,5 +84,5 @@ Credits
 
 
 * Author: `Simon Pedro Gonzalez <https://simonpedrogonzalez.github.io/>`_.
-* This package is based on the following :raw-html-m2r:`<a href="assets/mdml_final_report.pdf" download>project</a>`\ , where you can read more about the zonal stats problem, methods and performance comparison.
+* This package is based on the following :raw-html-m2r:`<a href="https://simonpedrogonzalez.github.io/raptor-stats-docs/_static/mdml_final_report.pdf" download>project</a>`\ , where you can read more about the zonal stats problem, methods and performance comparison.
 * This package API is inspired in the `rasterstats <https://github.com/perrygeo/python-rasterstats>`_ package by `Matthew Perry <https://github.com/perrygeo>`_.
