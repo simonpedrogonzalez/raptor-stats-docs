@@ -60,17 +60,17 @@ Performance
 Raptor methods performance advantage increases with the size of the input raster and number of features. For example, with an ~1.9 billion pixel raster and 50 features (US states):
 
 
-.. image:: https://github.com/simonpedrogonzalez/raptor-stats/blob/main/assets/total_time_s_states.svg
-   :target: https://github.com/simonpedrogonzalez/raptor-stats/blob/main/assets/total_time_s_states.svg
-   :alt: 
+.. image:: assets/total_time_s_states.svg
+   :target: assets/total_time_s_states.svg
+   :alt: See images at https://github.com/simonpedrogonzalez/raptor-stats/blob/main/README.md
 
 
 For the same raster, on but around 3000 features (US counties):
 
 
-.. image:: https://github.com/simonpedrogonzalez/raptor-stats/blob/main/assets/total_time_s_counties.svg
-   :target: https://github.com/simonpedrogonzalez/raptor-stats/blob/main/assets/total_time_s_counties.svg
-   :alt: 
+.. image:: assets/total_time_s_counties.svg
+   :target: assets/total_time_s_counties.svg
+   :alt: See images at https://github.com/simonpedrogonzalez/raptor-stats/blob/main/README.md
 
 
 NOTES:
